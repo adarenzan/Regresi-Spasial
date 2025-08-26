@@ -1,0 +1,208 @@
+---
+title: "Regresi Spasial"
+author: "Mhd Haekal Hakim"
+date: "2025-08-20"
+output: html_document
+---
+
+# Paket R untuk Data Spasial
+
+```{r}
+library(sp) # mengolah data peta (titik, garis, poligon) (versi lama)
+library(sf) # mengolah data spasial vektor modern
+library(mapview) # membuat peta interaktif
+library(spData) # berisi contoh data spasial
+library(spatstat) # untuk data berupa titik ()
+library(ggplot2) # membuat grafik
+library(terra) # untuk data raster
+library(raster) # versi lama mengolah data raster
+```
+
+## Jenis Data Spasial
+
+### Pola Titik (Point Pattern)
+
+```{r}
+plot(clmfires, use.marks = FALSE, pch = ".") 
+```
+
+```{r}
+plot(hamster) 
+```
+
+### Data Areal
+
+```{r}
+d = st_read(system.file("shape/nc.shp", package = "sf"),
+            quiet = TRUE)
+mapview(d, zcol = "SID74")
+```
+
+### Data Geostatistik
+
+```{r}
+data(meuse)
+meuse <- st_as_sf(meuse, coords = c("x", "y"), crs = 28992) # 28992 adalah EPSG resmi belanda
+mapview(meuse, zcol = "lead",  map.types = "CartoDB.Voyager")
+```
+
+```{r}
+mapview(properties, zcol = "prpsqm")
+```
+
+# Pengolahan Data Spasial
+
+## Vektor
+
+```{r}
+data(meuse)
+meuse <- st_as_sf(meuse, coords = c("x", "y"), crs = 28992)
+coord <- st_coordinates(meuse)
+```
+
+```{r}
+plot(meuse[1], main = "points")
+```
+
+```{r}
+line <- SpatialLines(list(Lines(list(Line(coord)), "line1")))
+plot(line, main = "lines")
+```
+
+```{r}
+data("meuse.riv")
+meuse.lst <- list(Polygons(list(Polygon(meuse.riv)), "meuse.riv"))
+meuse.pol <- SpatialPolygons(meuse.lst)
+
+plot(meuse.pol, col = "grey", main ="polygons")
+```
+
+## Raster/Grid
+
+```{r}
+pathraster <- system.file("ex/elev.tif", package = "terra")
+r <- terra::rast(pathraster)
+r
+```
+
+```{r}
+plot(r)
+```
+
+# Coordinate Reference System
+
+## Kode EPSG
+
+```{r}
+st_crs("EPSG:4326")$Name
+```
+
+```{r}
+st_crs("EPSG:4326")$epsg
+```
+
+## Transformasi CRS dengan sf dan terra
+
+### Untuk data vektor
+
+```{r}
+library(sf)
+pathshp <- system.file("shape/nc.shp", package = "sf")
+map <- st_read(pathshp, quiet = TRUE)
+
+st_crs(map) # cek CRS untuk tau sistem koordinat apa yang dipakai data aslinya
+```
+
+```{r}
+# Transform CRS
+map2 <- st_transform(map, crs = "EPSG:4326")
+st_crs(map2)
+```
+
+### Untuk data raster
+
+```{r}
+library(terra)
+pathraster <- system.file("ex/elev.tif", package = "terra")
+r <- rast(pathraster)
+crs(r) # cek CRS dari raster untuk tau sistem koordinat aslinya.
+```
+
+```{r}
+# Transform CRS
+r2 <- terra::project(r, "EPSG:2169")
+crs(r2)
+```
+
+# Impor dan Ekspor Data
+
+## Import Data dari Paket Spasial di R
+
+```{r}
+pathshp <- system.file("shape/nc.shp", package = "sf")
+```
+
+```{r}
+nc <- st_read(pathshp, quiet = TRUE)
+class(nc)
+```
+
+```{r}
+st_crs(nc)
+```
+
+```{r}
+head(nc, 5)
+```
+
+```{r}
+plot(nc)
+```
+
+```{r}
+plot(nc[1]) #plot salah satu atribut
+```
+
+## Impor Data Eksternal
+
+```{r}
+veg<-st_read(dsn="cape_peninsula/veg", layer="Vegetation_Indigenous")
+```
+
+```{r}
+class(veg)
+```
+
+
+# Bla bla bla
+```{r}
+setwd("C:\\Users\\mhdha\\OneDrive\\Dokumen\\IPB\\Semester 5\\Regpas\\Pertemuan 1")
+```
+
+
+# Membaca Data Spasial
+```{r}
+veg = st_read(dsn = "C:\\Users\\mhdha\\OneDrive\\Dokumen\\IPB\\Semester 5\\Regpas\\Pertemuan 1\\cape_peninsula\\cape_peninsula\\veg",layer = "Vegetation_Indigenous")
+
+```
+```{r}
+class(veg)
+```
+
+```{r}
+head(veg)
+```
+## Plot Data Spasial
+```{r}
+plot(veg)
+```
+
+```{r}
+plot(veg[3])
+```
+
+```{r}
+ggplot() +
+  geom_sf(data=veg, aes(fill=National_))
+```
+
