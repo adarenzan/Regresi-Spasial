@@ -1,0 +1,196 @@
+# Dataset Pinus Jepang
+```{r}
+library(spatstat)
+```
+
+```{r}
+japanesepines
+class(japanesepines)
+plot(japanesepines)
+axis(1)
+axis(2)
+```
+
+## Dataset Pohon di Hutan
+```{r}
+longleaf
+class(longleaf)
+plot(longleaf)
+axis(1)
+axis(2)
+```
+
+## Dataset Kebakaran Hutan Castilla-La Mancha
+```{r}
+clmfires
+class(clmfires)
+plot(clmfires)
+```
+
+## Dataset Tumor Hamster
+```{r}
+hamster
+plot(hamster)
+```
+
+## Dataset Chorley-Ribble
+```{r}
+chorley
+plot(chorley)
+points(chorley.extra$incin, pch = 10, cex = 2, col = "blue")
+```
+
+## Membuat Pola Titik Spasial
+```{r}
+win = owin(xrange = c(0,1), yrange = c (0,2))
+plot(win)
+
+x = runif(100,0,1)
+y = runif(100,0,2)
+```
+
+```{r}
+X = ppp(x=x, y=y, window = win)
+X
+```
+
+```{r}
+plot(X)
+axis(1)
+axis(2)
+```
+
+```{r}
+X = runifpoint(n=100,win=win)
+```
+
+```{r}
+# set marks with marks()
+marks(X) = 1:npoints (X)
+# alternatively, set marks with %mark%
+X = X %mark% 1:npoints(X)
+plot(X)
+```
+
+```{r}
+win2 <- owin(xrange = c(0, 5), yrange = c(0, 5))
+X2 <- ppp(x = x, y = y, window = win2)
+plot(X2)
+axis(1)
+axis(2)
+```
+
+# Mengonversi antara objek ppp dan sf
+## Dari ppp ke sf
+```{r}
+library(sf)
+# ppp object
+X <- longleaf
+# create data frame with coordinates and marks
+ddf <- data.frame(x = X$x, y = X$y, m = marks(X))
+# create sf object with data frame and name of coordinates
+d <- st_as_sf(ddf, coords = c("x", "y"))
+```
+
+```{r}
+class(X)
+class(d)
+```
+
+## Dari sf ke ppp
+```{r}
+X <- as.ppp(st_coordinates(d), st_bbox(d))
+marks(X) <- d$m # alternatively we can use X <- X %mark% d$m
+plot(X)
+```
+
+# Indetifikasi Pola Titik
+## 1. Metode Kuadran
+```{r}
+library(spatstat)
+data(swedishpines)
+```
+
+```{r}
+A <- swedishpines
+plot(A, main = "Swedishpines")
+axis(1)
+axis(2)
+```
+
+```{r}
+summary(A)
+```
+
+```{r}
+den <- density(x = A, sigma = 10)
+summary(den)
+```
+
+```{r}
+plot(den, main = "Intensity")
+contour(den, add = TRUE) # contour plot
+```
+
+```{r}
+q <- quadratcount(A, nx = 4, ny = 3)
+q
+```
+
+```{r}
+plot(q)
+```
+
+```{r}
+plot(A)
+axis(1)
+axis(2)
+plot(q, add = TRUE, cex = 1.5)
+```
+
+```{r}
+mu <- mean(q)
+sigma <- sd(q)^2
+VMR <- sigma/mu
+VMR
+```
+
+```{r}
+quadrat.test(q)
+```
+
+```{r}
+quadrat.test(q, alt = "regular")
+```
+
+```{r}
+quadrat.test(q, alt = "clustered")
+```
+
+## 2. Empirical K-Function
+```{r}
+nn <- nndist(swedishpines)
+hist(nn)
+```
+
+### Fungsi K Empiris
+### Penerapan di R
+#### Graphical Test
+```{r}
+K<- Kest(swedishpines, correction="Ripley")
+plot(K)
+```
+
+```{r}
+E<-envelope(swedishpines,Kest, nsim=99)
+```
+
+```{r}
+plot(E)
+```
+
+#### Non-graphical test
+```{r}
+mad.test(swedishpines, Kest, nsim=99, alternative="two.sided")
+```
+
